@@ -46,9 +46,9 @@ fi
 
 ########################################################################
 
-printf "%s," "directory" "n" "total size" && printf "%s\n" "average size"
+printf "%s$sep" "directory" "n" "total size" && printf "%s\n" "average size"
 
-ext="$ext" find "$inDir" -mindepth "$level" -maxdepth "$level" -type d -exec bash -c '
+ext="$ext" sep="$sep" find "$inDir" -mindepth "$level" -maxdepth "$level" -type d -exec bash -c '
 	for dir do
 		n="$(find "$dir" -iname "*.$ext" | wc -l)"
 		if [[ "$n" == 0 ]]; then
@@ -60,5 +60,5 @@ ext="$ext" find "$inDir" -mindepth "$level" -maxdepth "$level" -type d -exec bas
 		fi
 		sizes="$(numfmt --to=iec-i --suffix=B "$sizes")"
 		size="$(numfmt --to=iec-i --suffix=B "$size")"
-		printf "%s," "${dir#./*}" "$n" "$sizes" && printf "%s\n" "$size"
+		printf "%s$sep" "${dir#./*}" "$n" "$sizes" && printf "%s\n" "$size"
 	done' bash {} + | sort
