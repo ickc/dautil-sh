@@ -5,7 +5,8 @@
 
 find -type d -name '.git' -exec bash -c '
 	for git do
-		if [[ $(cd "${git::-4}" && git status --porcelain) ]]; then
-			echo "${git::-4}"
+		dir="${git::-4}"
+		if [[ $(cd "$dir" && git status --porcelain) ]]; then
+			echo "$dir"
 		fi
 	done' bash {} +
