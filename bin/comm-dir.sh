@@ -6,7 +6,8 @@ where:
 	-h	show this help message
 	-i	input directory.
 	-o	output directory.
-	-e	(optional) file extension to look for
+	-e	(optional) file extension to look for.
+	-b	basename of files only.
 
 print the diff. of the content between input/output directories, with
 optional extension.
@@ -18,13 +19,15 @@ optional extension.
 OPTIND=1
 
 # get the options
-while getopts "i:o:n:dh" opt; do
+while getopts "i:o:n:e:bh" opt; do
 	case "$opt" in
 	i)	inDir="$OPTARG"
 		;;
 	o)	outDir="$OPTARG"
 		;;
 	e)	ext="$OPTARG"
+		;;
+	b)	useBasename=true
 		;;
 	h)	printf "%s\n" "$usage"
 		exit 0
@@ -45,4 +48,10 @@ if [[ -n "$ext" ]]; then
 	args='-name "*.$ext"'
 fi
 
-comm -3 <(cd $inDir; find $args | sort) <(cd $outDir; find $args | sort)
+if [[ -n "$useBasename" ]]; then
+	comm -3 <(cd $inDir; find $args -exec basename {} \; | sort) <(cd $outDir; find $args -exec basename {} \; | sort)
+else
+	comm -3 <(cd $inDir; find $args | sort) <(cd $outDir; find $args | sort)
+fi
+
+
