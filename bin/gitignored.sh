@@ -6,6 +6,6 @@ find -type d -name '\.git' -exec bash -c '
 	for git do
 		dir="${git::-4}"
 		cd "$dir"
-		git status --porcelain=2 --ignored | grep "^[!?]" | awk -v dir="$dir" "{print dir substr(\$0,3)}"
+		git status --porcelain=1 --ignored | grep -E "^!!" | awk -v dir="$dir" "{print dir substr(\$0,4)}"
 		cd - > /dev/null
 	done' bash {} +
