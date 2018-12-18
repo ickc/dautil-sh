@@ -105,20 +105,20 @@ if [[ -n "$outExt" ]]; then
 else
 	if [[ -n "$neg" ]]; then
 		if [[ -n "$original" ]]; then
-			# note that this is slow because of the subshell, but still faster than calling `find`
 			execString='
 			for inFile do
-				(( $(printf "%s\\n" "${inFile%.*}".* | wc -l) == 1 )) && echo $inFile
+				sidecars=("${inFile%.*}".*)
+				(( ${#sidecars[@]} == 1 )) && echo $inFile
 			done'
 		else
 			printerr 'Without output extension with negation, only original can be shown.'
 		fi
 	else
 		if [[ -n "$original" ]]; then
-			# note that this is slow because of the subshell, but still faster than calling `find`
 			execString='
 			for inFile do
-				(( $(printf "%s\\n" "${inFile%.*}".* | wc -l) > 1 )) && echo $inFile
+				sidecars=("${inFile%.*}".*)
+				(( ${#sidecars[@]} > 1 )) && echo $inFile
 			done'
 		else
 			execString='
