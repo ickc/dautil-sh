@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-usage="${BASH_SOURCE[0]} [-h] [-i INPUTDIRECTORY] [-e EXT] [-l LEVEL] [-s SEP] --- Print a summary of files with extension per subdirectories
+usage="${BASH_SOURCE[0]} [-h] [-i INPUTDIRECTORY] [-e EXT] [-p pattern] [-l LEVEL] [-s SEP] --- Print a summary of files with extension per subdirectories. v0.1
 
 where:
 	-h	show this help message
 	-i	input directory. Default: current directory.
 	-e	file extension to search for.
+	-p	pattern to search for. Override -e if both are specified.
 	-l	level of subdirectories. Default: 1
 	-s	separator of the output table. Default: ,
 "
@@ -20,11 +21,13 @@ level=1
 sep=,
 
 # get the options
-while getopts "hi:e:l:s:" opt; do
+while getopts "hi:e:p:l:s:" opt; do
 	case "$opt" in
 	i)	inDir="$OPTARG"
 		;;
 	e)	ext="$OPTARG"
+		;;
+	p)	pattern="$OPTARG"
 		;;
 	l)	level="$OPTARG"
 		;;
@@ -39,23 +42,31 @@ while getopts "hi:e:l:s:" opt; do
 	esac
 done
 
-if [[ -z "$ext" ]]; then
-	printf "%s\n" '-e is required.' >&2
+if [[ -z "$ext" && -z "$pattern" ]]; then
+	printf "%s\n" '-e or -p is required.' >&2
 	exit 1
+fi
+
+if [[ -n "$ext" ]]; then
+	if [[ -n "$pattern" ]]; then
+		printf "%s\n" "-p $pattern override -e $ext." >&2
+	else
+		pattern="*.$ext"
+	fi
 fi
 
 ########################################################################
 
 printf "%s$sep" "directory" "n" "total size" && printf "%s\n" "average size"
 
-ext="$ext" sep="$sep" find "$inDir" -mindepth "$level" -maxdepth "$level" -type d -exec bash -c '
+pattern="$pattern" sep="$sep" find "$inDir" -mindepth "$level" -maxdepth "$level" -type d -exec bash -c '
 	for dir do
-		n="$(find "$dir" -iname "*.$ext" | wc -l)"
+		n="$(find "$dir" -iname "$pattern" | wc -l)"
 		if [[ "$n" == 0 ]]; then
 			sizes=0
 			size=0
 		else
-			sizes="$(find "$dir" -iname "*.$ext" -print0 | xargs -0 stat -c %s | paste -d+ -s | bc)"
+			sizes="$(find "$dir" -iname "$pattern" -print0 | xargs -0 stat -c %s | paste -d+ -s | bc)"
 			size="$(($sizes / $n))"
 		fi
 		sizes="$(numfmt --to=iec-i --suffix=B "$sizes")"
